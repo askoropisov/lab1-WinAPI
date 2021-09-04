@@ -1,5 +1,7 @@
 #include <windows.h>
 #include <vector>
+#include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -10,6 +12,8 @@ HPEN pen, old_pen;
 HBRUSH brush, old_brush;
 HMENU hMenubar = nullptr;
 HMENU hMenu = nullptr;
+OPENFILENAME ofn;
+ifstream infile;
 
 enum color {
     red,
@@ -37,6 +41,21 @@ public:
 vector<Poly> vec_poly;
 vector<Metal> vec_met;
 
+bool read_file(ifstream file){
+
+    string token;
+    while (true) {
+        file>>token;
+        if (token == "RECT") continue;
+    }
+
+    return true;
+}
+
+bool save_file(ifstream& file) {
+
+    return true;
+}
 
 long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
@@ -44,6 +63,7 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     HDC hdc;
 
     RECT r;
+
     GetClientRect(hWnd, &r);
 
     switch (message) {
@@ -60,55 +80,57 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
 
 
-        
-        
         SetMenu(hWnd, hMenubar);
 
         break;
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
-        case 100: 
-            /*OPENFILENAME ofn;
+        case 100: {
+            
             char szFileName[MAX_PATH] = "";
             ZeroMemory(&ofn, sizeof(ofn));
             ofn.lStructSize = sizeof(ofn);
             ofn.hwndOwner = hWnd;
-            ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
-            ofn.lpstrFile = szFileName;
+            ofn.lpstrFilter = (LPWSTR)"Text Files(*.txt)\0 * .txt\0All Files(*.*)\0 * .*\0";
+            ofn.lpstrFile = (LPWSTR)szFileName;
             ofn.nMaxFile = MAX_PATH;
             ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-            ofn.lpstrDefExt = "txt";
-            if (GetOpenFileName(&ofn))
-                MessageBox(hWnd, ofn.lpstrFile, "File name", MB_OK);*/
-            Metal met1;
+            ofn.lpstrDefExt = (LPWSTR)"txt";
+
+
+            if (GetOpenFileName(&ofn)){
+                MessageBox(hWnd, ofn.lpstrFile, (LPWSTR)"File name", MB_OK);
+
+                }
+
+
+            /*Metal met1;
             met1.firts_angle_x = 50;
             met1.firts_angle_y = 50;
             met1.second_angle_x = 250;
             met1.second_angle_y = 300;
-            vec_met.push_back(met1);
+            vec_met.push_back(met1);*/
 
             break;
+            }
         case 2:
+            save_file(infile);
             break;
         default:
             break;
         }
         break;
     case WM_PAINT:
+
+        //set black client rect
+        PAINTSTRUCT ps;
         hdc = BeginPaint(hWnd, &ps);
+        FillRect(hdc, &r, reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
+
 
         //TextOut(hdc, 0, 0, L"œ »Ã— ÛÎËÚ!", 12);
 
-        pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 40));
-        old_pen = (HPEN)SelectObject(hdc, pen);
-        brush = CreateSolidBrush(RGB(0, 0, 40));
-        old_brush = (HBRUSH)SelectObject(hdc, brush);
-
-        Rectangle(hdc, 0, 0, 4000, 4000);
-
-        SelectObject(hdc, old_pen);
-        SelectObject(hdc, old_brush);
         
         //draw metall in file
         pen = CreatePen(PS_SOLID, 1, RGB(80, 0, 250));
