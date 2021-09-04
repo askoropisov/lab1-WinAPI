@@ -55,7 +55,7 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         hMenu = CreateMenu();
 
         //AppendMenu(hMenu, MF_STRING, 4131, L"&Quit");
-        AppendMenu(hMenu, MF_STRING, 1, L"&Open file");
+        AppendMenu(hMenu, MF_STRING, 100, L"&Open file");
         AppendMenu(hMenu, MF_STRING, 2, L"&Save As");
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
 
@@ -68,7 +68,7 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
-        case 1: 
+        case 100: 
             /*OPENFILENAME ofn;
             char szFileName[MAX_PATH] = "";
             ZeroMemory(&ofn, sizeof(ofn));
@@ -81,7 +81,12 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
             ofn.lpstrDefExt = "txt";
             if (GetOpenFileName(&ofn))
                 MessageBox(hWnd, ofn.lpstrFile, "File name", MB_OK);*/
-
+            Metal met1;
+            met1.firts_angle_x = 50;
+            met1.firts_angle_y = 50;
+            met1.second_angle_x = 250;
+            met1.second_angle_y = 300;
+            vec_met.push_back(met1);
 
             break;
         case 2:
@@ -105,7 +110,31 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         SelectObject(hdc, old_pen);
         SelectObject(hdc, old_brush);
         
+        //draw metall in file
+        pen = CreatePen(PS_SOLID, 1, RGB(80, 0, 250));
+        old_pen = (HPEN)SelectObject(hdc, pen);
+        brush = CreateSolidBrush(RGB(80, 0, 250));
+        old_brush = (HBRUSH)SelectObject(hdc, brush);
 
+        for (int i = 0; i < vec_met.size(); i++) {
+            Rectangle(hdc, vec_met[i].firts_angle_x, vec_met[i].firts_angle_y, vec_met[i].second_angle_x, vec_met[i].second_angle_y);
+        }
+
+        SelectObject(hdc, old_pen);
+        SelectObject(hdc, old_brush);
+
+        //draw poly in file
+        pen = CreatePen(PS_SOLID, 1, RGB(250, 80, 0));
+        old_pen = (HPEN)SelectObject(hdc, pen);
+        brush = CreateSolidBrush(RGB(250, 80, 0));
+        old_brush = (HBRUSH)SelectObject(hdc, brush);
+
+        for (int i = 0; i < vec_poly.size(); i++) {
+            Rectangle(hdc, vec_poly[i].firts_angle_x, vec_poly[i].firts_angle_y, vec_poly[i].second_angle_x, vec_poly[i].second_angle_y);
+        }
+
+        SelectObject(hdc, old_pen);
+        SelectObject(hdc, old_brush);
 
         EndPaint(hWnd, &ps);
 
@@ -122,7 +151,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     WNDCLASSEX wcex;
     
 
-
+   
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = WndProc;
