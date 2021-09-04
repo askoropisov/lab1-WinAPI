@@ -1,10 +1,42 @@
 #include <windows.h>
+#include <vector>
+
+using namespace std;
 
 const wchar_t windowClass[] = L"win32app";
 const wchar_t windowTitle[] = L"Win32API - Layer Simulator";
 
 HPEN pen, old_pen;
 HBRUSH brush, old_brush;
+HMENU hMenubar = nullptr;
+HMENU hMenu = nullptr;
+
+enum color {
+    red,
+    blue,
+};
+
+class Poly {
+public:
+    int firts_angle_x;
+    int firts_angle_y;
+    int second_angle_x;
+    int second_angle_y;
+    color:red;
+};
+
+class Metal {
+public:
+    int firts_angle_x;
+    int firts_angle_y;
+    int second_angle_x;
+    int second_angle_y;
+    color:blue;
+};
+
+vector<Poly> vec_poly;
+vector<Metal> vec_met;
+
 
 long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
@@ -17,6 +49,46 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_DESTROY:
         PostQuitMessage(0);
+        break;
+    case WM_CREATE:
+        hMenubar = CreateMenu();
+        hMenu = CreateMenu();
+
+        //AppendMenu(hMenu, MF_STRING, 4131, L"&Quit");
+        AppendMenu(hMenu, MF_STRING, 1, L"&Open file");
+        AppendMenu(hMenu, MF_STRING, 2, L"&Save As");
+        AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
+
+
+        
+        
+        SetMenu(hWnd, hMenubar);
+
+        break;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case 1: 
+            /*OPENFILENAME ofn;
+            char szFileName[MAX_PATH] = "";
+            ZeroMemory(&ofn, sizeof(ofn));
+            ofn.lStructSize = sizeof(ofn);
+            ofn.hwndOwner = hWnd;
+            ofn.lpstrFilter = "Text Files (*.txt)\0*.txt\0All Files (*.*)\0*.*\0";
+            ofn.lpstrFile = szFileName;
+            ofn.nMaxFile = MAX_PATH;
+            ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+            ofn.lpstrDefExt = "txt";
+            if (GetOpenFileName(&ofn))
+                MessageBox(hWnd, ofn.lpstrFile, "File name", MB_OK);*/
+
+
+            break;
+        case 2:
+            break;
+        default:
+            break;
+        }
         break;
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &ps);
@@ -34,6 +106,7 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         SelectObject(hdc, old_brush);
         
 
+
         EndPaint(hWnd, &ps);
 
         DeleteObject(pen);
@@ -47,6 +120,8 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     WNDCLASSEX wcex;
+    
+
 
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
