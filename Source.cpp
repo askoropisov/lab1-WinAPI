@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <TCHAR.H>
+#include "atlstr.h"
 
 using namespace std;
 
@@ -41,12 +42,19 @@ public:
 vector<Poly> vec_poly;
 vector<Metal> vec_met;
 
-bool read_file(ifstream file) {
+bool read_file(ifstream &file) {
 
     string token;
     while (true) {
         file >> token;
         if (token == "RECT") continue;
+        /*Metal met1;
+        met1.firts_angle_x = 50;
+        met1.firts_angle_y = 50;
+        met1.second_angle_x = 250;
+        met1.second_angle_y = 300;
+        vec_met.push_back(met1);*/
+        break;
     }
 
     return true;
@@ -61,7 +69,6 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     PAINTSTRUCT ps;
     HDC hdc;
-
     RECT r;
 
     GetClientRect(hWnd, &r);
@@ -86,8 +93,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
-        case 100: {
-
+        case 100:
             wchar_t szFileName[MAX_PATH] = L"";
             ZeroMemory(&ofn, sizeof(ofn));
             ofn.lStructSize = sizeof(ofn);
@@ -98,26 +104,19 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
             ofn.lpstrDefExt = _T("txt");
 
-
             if (GetOpenFileName(&ofn)) {
-                MessageBox(hWnd, ofn.lpstrFile, _T("File name"), MB_OK);
-               /* string token;
-                while (true) {
-                    ofn.lpstrFile >> token;
-                    if (token == "RECT") continue;
-                }*/
+                //MessageBox(hWnd, ofn.lpstrFile, _T("File name"), MB_OK);
+                string name_file;
+                name_file = CW2A(ofn.lpstrFile);                                                //LPWSTR to string for open file
+                ifstream file(name_file);
+
+                if (!read_file(file)) {
+                    return EXIT_FAILURE;
+                }
+                
             }
 
-
-            /*Metal met1;
-            met1.firts_angle_x = 50;
-            met1.firts_angle_y = 50;
-            met1.second_angle_x = 250;
-            met1.second_angle_y = 300;
-            vec_met.push_back(met1);*/
-
             break;
-        }
         case 2:
             save_file(infile);
             break;
@@ -134,10 +133,6 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         hdc = BeginPaint(hWnd, &ps);
         FillRect(hdc, &r, reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
-
-
-        //TextOut(hdc, 0, 0, L"œ »Ã— ÛÎËÚ!", 12);
-
 
         //draw metall in file
         pen = CreatePen(PS_SOLID, 1, RGB(80, 0, 250));
