@@ -10,15 +10,10 @@ using namespace std;
 const wchar_t windowClass[] = _T("win32app");
 const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 
-
+const int lyambda = 10;
 
 OPENFILENAME ofn;
 ifstream file;
-
-enum color {
-    red,
-    blue,
-};
 
 class Poly {
 public:
@@ -26,7 +21,6 @@ public:
     int firts_angle_y;
     int second_angle_x;
     int second_angle_y;
-    color:red;
 };
 
 class Metal {
@@ -35,7 +29,6 @@ public:
     int firts_angle_y;
     int second_angle_x;
     int second_angle_y;
-    color:blue;
 };
 
 vector<Poly> vec_poly;
@@ -75,9 +68,14 @@ bool save_file(ifstream& file) {
     return true;
 }
 
-void create_using_rectangle(POINT first, POINT second) {
-    
-}
+//int round_to_dec(int n) {
+//    if (n >= lyambda) {
+//        double k = n%lyambda;
+//        if (k>=lyambda/2) return n+lyambda;
+//        else return n/lyambda;
+//        return 0;
+//    }
+//}
 
 bool draw_metall = true, draw_poly = true;
 WORD cursor_x_f = 0, cursor_y_f = 0, cursor_x_s = 0, cursor_y_s = 0;                        //short
@@ -110,13 +108,25 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             p_met->second_angle_x=cursor_x_s;
             p_met->second_angle_y=cursor_y_s;
             InvalidateRect(hWnd, 0, true);
+        }
 
-            //Poly* p_poly = new Poly;
-            //user_rects_poly.push_back(p_poly);
-            //p_poly->firts_angle_x = cursor_x_f;
-            //p_poly->firts_angle_y = cursor_y_f;
-            //p_poly->second_angle_x = cursor_x_s;
-            //p_poly->second_angle_y = cursor_y_s;
+        break;
+    case WM_RBUTTONDOWN:
+        cursor_x_f = LOWORD(lParam);
+        cursor_y_f = HIWORD(lParam);
+        break;
+    case WM_RBUTTONUP:
+        cursor_x_s = LOWORD(lParam);
+        cursor_y_s = HIWORD(lParam);
+
+        if (cursor_x_f != cursor_x_s && cursor_y_f != cursor_y_s) {
+            Poly* p_poly = new Poly;
+            user_rects_poly.push_back(p_poly);
+            p_poly->firts_angle_x = cursor_x_f;
+            p_poly->firts_angle_y = cursor_y_f;
+            p_poly->second_angle_x = cursor_x_s;
+            p_poly->second_angle_y = cursor_y_s;
+            InvalidateRect(hWnd, 0, true);   
         }
 
         break;
@@ -205,6 +215,14 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //set black client rect
         FillRect(hdc, &r, reinterpret_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)));
 
+        //draw pionts field
+        const COLORREF grey = 0x00444444;
+        for (int i = 0; i < r.right; i+= lyambda) {
+            for (int j = 0; j < r.bottom; j+= lyambda) {
+                SetPixel(hdc, i, j, grey);
+            }
+        }
+
         //draw metall in file
         if (draw_metall == true) {
             pen = CreatePen(PS_SOLID, 1, RGB(0, 40, 255));
@@ -234,6 +252,10 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             for (int i = 0; i < vec_poly.size(); i++) {
                 Rectangle(hdc, vec_poly[i].firts_angle_x, vec_poly[i].firts_angle_y, vec_poly[i].second_angle_x, vec_poly[i].second_angle_y);
+            }
+            //draw user poly
+            for (int i = 0; i < user_rects_poly.size(); i++) {
+                Rectangle(hdc, user_rects_poly[i]->firts_angle_x, user_rects_poly[i]->firts_angle_y, user_rects_poly[i]->second_angle_x, user_rects_poly[i]->second_angle_y);
             }
 
             SelectObject(hdc, old_pen);
