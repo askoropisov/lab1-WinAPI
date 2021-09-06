@@ -31,33 +31,42 @@ public:
     int second_angle_y;
 };
 
-vector<Poly> vec_poly;
-vector<Metal> vec_met;
+vector<Poly*> vec_poly;
+vector<Metal*> vec_met;
 
 vector<Poly*> user_rects_poly;
 vector<Metal*> user_rects_met;
 
 bool read_file(ifstream &file) {
+    int temp_mas_koords[4];
 
     string token;
     while (true) {
+        if (file.eof()) break;
+        else {
         file >> token;
-        if (token == "RECT") continue;
-        Metal met1;
-        met1.firts_angle_x = 50;
-        met1.firts_angle_y = 50;
-        met1.second_angle_x = 250;
-        met1.second_angle_y = 300;
-        vec_met.push_back(met1);
-
-        Poly pol;
-        pol.firts_angle_x = 400;
-        pol.firts_angle_y = 400;
-        pol.second_angle_x = 650;
-        pol.second_angle_y = 550;
-        vec_poly.push_back(pol);
-
-        break;
+        file >> temp_mas_koords[0];
+        file >> temp_mas_koords[1];
+        file >> temp_mas_koords[2];
+        file >> temp_mas_koords[3];
+        file>>token;
+        if (token == "METAL") {
+            Metal* p_met = new  Metal;
+            vec_met.push_back(p_met);
+            p_met->firts_angle_x=temp_mas_koords[0]*lyambda;
+            p_met->firts_angle_y=temp_mas_koords[1]*lyambda;
+            p_met->second_angle_x=temp_mas_koords[2]*lyambda;
+            p_met->second_angle_y=temp_mas_koords[3]*lyambda;
+        }
+        if (token == "POLY") {
+            Poly* p_poly = new  Poly;
+            vec_poly.push_back(p_poly);
+            p_poly->firts_angle_x = temp_mas_koords[0] * lyambda;
+            p_poly->firts_angle_y = temp_mas_koords[1] * lyambda;
+            p_poly->second_angle_x = temp_mas_koords[2] * lyambda;
+            p_poly->second_angle_y = temp_mas_koords[3] * lyambda;
+        }
+        }
     }
 
     return true;
@@ -138,6 +147,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, _T("&File"));
         AppendMenu(hMenu, MF_STRING, 101, _T("&Open file"));
         AppendMenu(hMenu, MF_STRING, 102, _T("&Save As"));
+        AppendMenu(hMenu, MF_SEPARATOR, 0, _T(""));
+        AppendMenu(hMenu, MF_STRING, 103, _T("&Exit"));
+
        
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu1, _T("&Draw"));
         AppendMenu(hMenu1, MF_STRING, 201, _T("&Visible/invisible metall"));
@@ -188,6 +200,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
             }
+        case 103:
+            PostMessage(hWnd, WM_QUIT, 0, 0);
+            break;
         case 201:                            //Visible/invisible metall
             if (draw_metall == true) draw_metall = false;
             else if (draw_metall == false) draw_metall = true;
@@ -202,6 +217,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             break;
         }
         break;
+
     case WM_PAINT:
     {
 
@@ -231,7 +247,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (int i = 0; i < vec_met.size(); i++) {
-                Rectangle(hdc, vec_met[i].firts_angle_x, vec_met[i].firts_angle_y, vec_met[i].second_angle_x, vec_met[i].second_angle_y);
+                Rectangle(hdc, vec_met[i]->firts_angle_x, vec_met[i]->firts_angle_y, vec_met[i]->second_angle_x, vec_met[i]->second_angle_y);
             }
 
             //draw user metall
@@ -251,7 +267,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (int i = 0; i < vec_poly.size(); i++) {
-                Rectangle(hdc, vec_poly[i].firts_angle_x, vec_poly[i].firts_angle_y, vec_poly[i].second_angle_x, vec_poly[i].second_angle_y);
+                Rectangle(hdc, vec_poly[i]->firts_angle_x, vec_poly[i]->firts_angle_y, vec_poly[i]->second_angle_x, vec_poly[i]->second_angle_y);
             }
             //draw user poly
             for (int i = 0; i < user_rects_poly.size(); i++) {
