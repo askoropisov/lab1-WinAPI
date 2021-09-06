@@ -79,17 +79,14 @@ void create_using_rectangle(POINT first, POINT second) {
     
 }
 
-bool draw_metall = true, draw_poly = true;                                            //mb need make global
+bool draw_metall = true, draw_poly = true;
+WORD cursor_x_f = 0, cursor_y_f = 0, cursor_x_s = 0, cursor_y_s = 0;                        //short
 
 LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     PAINTSTRUCT ps;
     HDC hdc;
     RECT r;
-    POINT cursor_f;
-    POINT cursor_s;
-
-
 
     GetClientRect(hWnd, &r);
 
@@ -98,17 +95,30 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_LBUTTONDOWN:
-        ScreenToClient(hWnd, &cursor_f);
+        cursor_x_f = LOWORD(lParam);
+        cursor_y_f = HIWORD(lParam);
         break;
     case WM_LBUTTONUP:
-        ScreenToClient(hWnd, &cursor_s);
-        if (cursor_f.x != cursor_s.x & cursor_f.y != cursor_s.y) {
-           Metal* p_met = new Metal;
-           user_rects_met.push_back(p_met);
+        cursor_x_s = LOWORD(lParam);
+        cursor_y_s = HIWORD(lParam);
 
-           Poly* p_poly = new Poly;
-           user_rects_poly.push_back(p_poly);
+        if (cursor_x_f!=cursor_x_s && cursor_y_f!= cursor_y_s){
+            Metal* p_met = new Metal;
+            user_rects_met.push_back(p_met);
+            p_met->firts_angle_x=cursor_x_f;
+            p_met->firts_angle_y=cursor_y_f;
+            p_met->second_angle_x=cursor_x_s;
+            p_met->second_angle_y=cursor_y_s;
+            InvalidateRect(hWnd, 0, true);
+
+            //Poly* p_poly = new Poly;
+            //user_rects_poly.push_back(p_poly);
+            //p_poly->firts_angle_x = cursor_x_f;
+            //p_poly->firts_angle_y = cursor_y_f;
+            //p_poly->second_angle_x = cursor_x_s;
+            //p_poly->second_angle_y = cursor_y_s;
         }
+
         break;
     case WM_CREATE: {
         HMENU hMenubar = CreateMenu();
@@ -204,6 +214,11 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             for (int i = 0; i < vec_met.size(); i++) {
                 Rectangle(hdc, vec_met[i].firts_angle_x, vec_met[i].firts_angle_y, vec_met[i].second_angle_x, vec_met[i].second_angle_y);
+            }
+
+            //draw user metall
+            for (int i = 0; i < user_rects_met.size(); i++) {
+                Rectangle(hdc, user_rects_met[i]->firts_angle_x, user_rects_met[i]->firts_angle_y, user_rects_met[i]->second_angle_x, user_rects_met[i]->second_angle_y);
             }
 
             SelectObject(hdc, old_pen);
