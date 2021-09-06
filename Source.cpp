@@ -2,14 +2,14 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <TCHAR.H>
 
 using namespace std;
 
-const wchar_t windowClass[] = L"win32app";
-const wchar_t windowTitle[] = L"Win32API - Layer Simulator";
+const wchar_t windowClass[] = _T("win32app");
+const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 
-HPEN pen, old_pen;
-HBRUSH brush, old_brush;
+
 HMENU hMenubar = nullptr;
 HMENU hMenu = nullptr;
 OPENFILENAME ofn;
@@ -41,11 +41,11 @@ public:
 vector<Poly> vec_poly;
 vector<Metal> vec_met;
 
-bool read_file(ifstream file){
+bool read_file(ifstream file) {
 
     string token;
     while (true) {
-        file>>token;
+        file >> token;
         if (token == "RECT") continue;
     }
 
@@ -57,7 +57,7 @@ bool save_file(ifstream& file) {
     return true;
 }
 
-long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     PAINTSTRUCT ps;
     HDC hdc;
@@ -75,9 +75,9 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         hMenu = CreateMenu();
 
         //AppendMenu(hMenu, MF_STRING, 4131, L"&Quit");
-        AppendMenu(hMenu, MF_STRING, 100, L"&Open file");
-        AppendMenu(hMenu, MF_STRING, 2, L"&Save As");
-        AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, L"&File");
+        AppendMenu(hMenu, MF_STRING, 100, _T("&Open file"));
+        AppendMenu(hMenu, MF_STRING, 2, _T("&Save As"));
+        AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, _T("&File"));
 
 
         SetMenu(hWnd, hMenubar);
@@ -87,22 +87,26 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         switch (LOWORD(wParam))
         {
         case 100: {
-            
-            char szFileName[MAX_PATH] = "";
+
+            wchar_t szFileName[MAX_PATH] = L"";
             ZeroMemory(&ofn, sizeof(ofn));
             ofn.lStructSize = sizeof(ofn);
             ofn.hwndOwner = hWnd;
-            ofn.lpstrFilter = (LPWSTR)"Text Files(*.txt)\0 * .txt\0All Files(*.*)\0 * .*\0";
+            ofn.lpstrFilter = _T("Text Files(*.txt)\0 * .txt\0All Files(*.*)\0 * .*\0");
             ofn.lpstrFile = (LPWSTR)szFileName;
             ofn.nMaxFile = MAX_PATH;
             ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-            ofn.lpstrDefExt = (LPWSTR)"txt";
+            ofn.lpstrDefExt = _T("txt");
 
 
-            if (GetOpenFileName(&ofn)){
-                MessageBox(hWnd, ofn.lpstrFile, (LPWSTR)"File name", MB_OK);
-
-                }
+            if (GetOpenFileName(&ofn)) {
+                MessageBox(hWnd, ofn.lpstrFile, _T("File name"), MB_OK);
+               /* string token;
+                while (true) {
+                    ofn.lpstrFile >> token;
+                    if (token == "RECT") continue;
+                }*/
+            }
 
 
             /*Metal met1;
@@ -113,7 +117,7 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
             vec_met.push_back(met1);*/
 
             break;
-            }
+        }
         case 2:
             save_file(infile);
             break;
@@ -123,6 +127,9 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         break;
     case WM_PAINT:
 
+        HPEN pen, old_pen;
+        HBRUSH brush, old_brush;
+
         //set black client rect
         PAINTSTRUCT ps;
         hdc = BeginPaint(hWnd, &ps);
@@ -131,7 +138,7 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
         //TextOut(hdc, 0, 0, L"œ »Ã— ÛÎËÚ!", 12);
 
-        
+
         //draw metall in file
         pen = CreatePen(PS_SOLID, 1, RGB(80, 0, 250));
         old_pen = (HPEN)SelectObject(hdc, pen);
@@ -171,9 +178,9 @@ long __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     WNDCLASSEX wcex;
-    
 
-   
+
+
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = WndProc;
@@ -188,15 +195,15 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 
     if (!RegisterClassEx(&wcex)) {
-        MessageBox(NULL, L"Can“t register window class!", L"Win32 API Test", NULL);
+        MessageBox(NULL, _T("Can“t register window class!"), _T("Win32 API Test"), NULL);
         return 1;
     }
 
     HWND hWnd = CreateWindow(windowClass, windowTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1000, 800, NULL, NULL, hInstance, NULL);
-    
+
 
     if (!hWnd) {
-        MessageBox(NULL, L"Can“t create window!", L"Win32 API Test", NULL);
+        MessageBox(NULL, _T("Can“t create window!"), _T("Win32 API Test"), NULL);
         return 1;
     }
 
