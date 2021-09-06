@@ -41,6 +41,9 @@ public:
 vector<Poly> vec_poly;
 vector<Metal> vec_met;
 
+vector<Poly*> user_rects_poly;
+vector<Metal*> user_rects_met;
+
 bool read_file(ifstream &file) {
 
     string token;
@@ -72,6 +75,10 @@ bool save_file(ifstream& file) {
     return true;
 }
 
+void create_using_rectangle(POINT first, POINT second) {
+    
+}
+
 bool draw_metall = true, draw_poly = true;                                            //mb need make global
 
 LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -79,7 +86,10 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     PAINTSTRUCT ps;
     HDC hdc;
     RECT r;
-    
+    POINT cursor_f;
+    POINT cursor_s;
+
+
 
     GetClientRect(hWnd, &r);
 
@@ -88,8 +98,17 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         break;
     case WM_LBUTTONDOWN:
+        ScreenToClient(hWnd, &cursor_f);
         break;
-    case WM_RBUTTONUP:
+    case WM_LBUTTONUP:
+        ScreenToClient(hWnd, &cursor_s);
+        if (cursor_f.x != cursor_s.x & cursor_f.y != cursor_s.y) {
+           Metal* p_met = new Metal;
+           user_rects_met.push_back(p_met);
+
+           Poly* p_poly = new Poly;
+           user_rects_poly.push_back(p_poly);
+        }
         break;
     case WM_CREATE: {
         HMENU hMenubar = CreateMenu();
@@ -130,9 +149,10 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     MessageBox(hWnd, _T("Unable to open the file"), _T("ERROR"), MB_OK | MB_ICONERROR);
                     return EXIT_FAILURE;
                 }
-            }
+                InvalidateRect(hWnd, 0, true);
             }
             break;
+            }
         case 102: {                          //Save as
             const int result = MessageBox(hWnd, _T("Are you sure you want to save the changes?"), _T("Save As"), MB_YESNOCANCEL | MB_ICONQUESTION | MB_APPLMODAL);
             switch (result)
@@ -151,10 +171,12 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case 201:                            //Visible/invisible metall
             if (draw_metall == true) draw_metall = false;
             else if (draw_metall == false) draw_metall = true;
+            InvalidateRect(hWnd, 0, true);
             break;
         case 202:                            //Visible/invisible poly
             if (draw_poly == true) draw_poly = false;
             else if (draw_poly == false) draw_poly = true;
+            InvalidateRect(hWnd, 0, true);
             break;
         default:
             break;
@@ -202,12 +224,11 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SelectObject(hdc, old_pen);
             SelectObject(hdc, old_brush);
         }
-
+        
         EndPaint(hWnd, &ps);
         DeleteObject(pen);
         DeleteObject(brush);
         
-
         break;
         }
     default:
