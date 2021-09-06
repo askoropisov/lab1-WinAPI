@@ -192,7 +192,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (result)
             {
             case IDYES:
-                save_file(file);
+                //save_file(file);
                 break;
             case IDNO:
                 read_file(file);
