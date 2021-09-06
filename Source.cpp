@@ -14,6 +14,7 @@ const int lyambda = 10;
 
 OPENFILENAME ofn;
 ifstream file;
+ofstream file_save;
 
 class Poly {
 public:
@@ -71,11 +72,12 @@ bool read_file(ifstream &file) {
 
     return true;
 }
-
-bool save_file(ifstream& file) {
-
-    return true;
-}
+//
+//bool save_file(ifstream file) {
+//    file.open(file);
+//
+//    return true;
+//}
 
 //int round_to_dec(int n) {
 //    if (n >= lyambda) {
@@ -161,7 +163,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
-        case 101: {                          //Open file
+        case 101: {                                                                                //Open file
             wchar_t szFileName[MAX_PATH] = _T("");
             ZeroMemory(&ofn, sizeof(ofn));
             ofn.lStructSize = sizeof(ofn);
@@ -185,7 +187,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             break;
             }
-        case 102: {                          //Save as
+        case 102: {                                                                                 //Save as
             const int result = MessageBox(hWnd, _T("Are you sure you want to save the changes?"), _T("Save As"), MB_YESNOCANCEL | MB_ICONQUESTION | MB_APPLMODAL);
             switch (result)
             {
@@ -241,7 +243,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         //draw metall in file
         if (draw_metall == true) {
-            pen = CreatePen(PS_SOLID, 1, RGB(0, 40, 255));
+            pen = CreatePen(PS_SOLID, 1, RGB(0, 255, 0));
             old_pen = (HPEN)SelectObject(hdc, pen);
             brush = CreateSolidBrush(RGB(0, 40, 255));
             old_brush = (HBRUSH)SelectObject(hdc, brush);
@@ -261,7 +263,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         //draw poly in file
         if (draw_poly == true) {
-            pen = CreatePen(PS_SOLID, 1, RGB(250, 80, 0));
+            pen = CreatePen(PS_SOLID, 1, RGB(255, 255, 0));
             old_pen = (HPEN)SelectObject(hdc, pen);
             brush = CreateSolidBrush(RGB(250, 80, 0));
             old_brush = (HBRUSH)SelectObject(hdc, brush);
