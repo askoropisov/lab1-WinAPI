@@ -134,6 +134,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
         cursor_x_f = LOWORD(lParam);
         cursor_y_f = HIWORD(lParam);
+        WORD temt_x, temt_y;
+        while(!WM_LBUTTONUP) InvalidateRect(hWnd, 0, true);
+        
         break;
     case WM_LBUTTONUP:
         cursor_x_s = LOWORD(lParam);
@@ -183,7 +186,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
        
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu1, _T("&Draw"));
         AppendMenu(hMenu1, MF_STRING, 201, _T("&Visible/invisible metall"));
-        AppendMenu(hMenu1, MF_STRING, 202, _T("&Visible/invisible poly"));
+        AppendMenu(hMenu1, MF_STRING, 202, _T("&Visible/invisible metall"));
+        AppendMenu(hMenu1, MF_SEPARATOR, 0, _T(""));
+        AppendMenu(hMenu1, MF_STRING, 203, _T("&Clear"));
 
         SetMenu(hWnd, hMenubar);
         break;
@@ -208,14 +213,18 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 file.open(name_file, ios_base::in | ios_base::app);
 
+                
+
                 if (!read_file(file)) {
+                    user_rects_met.clear();
+                    user_rects_poly.clear();
+                    InvalidateRect(hWnd, 0, true);
                     MessageBox(hWnd, _T("Unable to open the file"), _T("ERROR"), MB_OK | MB_ICONERROR);
                     return EXIT_FAILURE;
                 }
                 InvalidateRect(hWnd, 0, true);
-
                 file.close();
-                file.open(name_file, ios_base::in | ios_base::app);
+                
             }
             break;
             }
@@ -224,10 +233,39 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (result)
             {
             case IDYES:
-                if (save_file(file)) {
-                    MessageBox(hWnd, _T("The file was saved successfully"), _T("Save As"), MB_OK | MB_ICONEXCLAMATION);
+            {
+                HINSTANCE hInstance;
+                char buf[255] = "\0";
+                ofn.lpstrFilter = _T("Text Files(*.txt)\0 * .txt\0All Files(*.*)\0 * .*\0");
+                ofn.lpstrDefExt = _T("txt");
+                char cCustomFilter[256] = "\0\0";
+                int nFilterIndex = 0;
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = hWnd;
+                ofn.nMaxCustFilter = 256;
+                ofn.nFilterIndex = nFilterIndex;
+                wchar_t szFileName[MAX_PATH] = _T("");
+                ofn.lpstrFile = (LPWSTR)szFileName;
+                ofn.nMaxFile = MAX_PATH;
+                ofn.lpstrFileTitle = NULL;
+                ofn.nMaxFileTitle = 0;
+                ofn.lpstrInitialDir = NULL;
+                ofn.lpstrTitle = 0;
+                ofn.Flags = OFN_FILEMUSTEXIST;
+
+                if (GetSaveFileName(&ofn))
+                {
+                    string name_file;
+                    name_file = CW2A(ofn.lpstrFile);
+                    file.close();
+                    file.open(name_file, ios_base::in | ios_base::app);
+                    if (save_file(file)) {
+                        MessageBox(hWnd, _T("The file was saved successfully"), _T("Save As"), MB_OK | MB_ICONEXCLAMATION);
+                    }
                 }
+                
                 break;
+            }
             case IDNO:
                 user_rects_met.clear();
                 user_rects_poly.clear();
@@ -249,6 +287,13 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case 202:                            //Visible/invisible poly
             if (draw_poly == true) draw_poly = false;
             else if (draw_poly == false) draw_poly = true;
+            InvalidateRect(hWnd, 0, true);
+            break;
+        case 203:
+            user_rects_met.clear();
+            user_rects_poly.clear();
+            vec_met.clear();
+            vec_poly.clear();
             InvalidateRect(hWnd, 0, true);
             break;
         default:
