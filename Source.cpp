@@ -213,6 +213,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     return EXIT_FAILURE;
                 }
                 InvalidateRect(hWnd, 0, true);
+
+                file.close();
+                file.open(name_file, ios_base::in | ios_base::app);
             }
             break;
             }
