@@ -1,5 +1,7 @@
 #include <windows.h>
 #include <vector>
+#include <iostream>
+#include <iomanip>
 #include <string>
 #include <fstream>
 #include <TCHAR.H>
@@ -13,8 +15,9 @@ const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 const int lyambda = 10;
 
 OPENFILENAME ofn;
-ifstream file;
-ofstream file_save;
+fstream file;
+//ofstream file;
+//ofstream file_save;
 
 class Poly {
 public:
@@ -38,7 +41,7 @@ vector<Metal*> vec_met;
 vector<Poly*> user_rects_poly;
 vector<Metal*> user_rects_met;
 
-bool read_file(ifstream &file) {
+bool read_file(fstream &file) {
     int temp_mas_koords[4];
 
     string token;
@@ -72,12 +75,38 @@ bool read_file(ifstream &file) {
 
     return true;
 }
-//
-//bool save_file(ifstream file) {
-//    file.open(file);
-//
-//    return true;
-//}
+
+bool save_file(fstream &file) {
+
+            for (auto element : user_rects_met) {
+                file<<endl<<"RECT ";
+                file<<element->firts_angle_x / lyambda;
+                file<<" ";
+                file<<element->firts_angle_y / lyambda;
+                file << " ";
+                file<<element->second_angle_x / lyambda;
+                file << " ";
+                file<<element->second_angle_y / lyambda;
+                file << " "; 
+                file << "METAL";
+                //delete element;
+            }
+            for (auto element : user_rects_poly) {
+                file << endl << "RECT ";
+                file << element->firts_angle_x / lyambda;
+                file << " ";
+                file << element->firts_angle_y / lyambda;
+                file << " ";
+                file << element->second_angle_x / lyambda;
+                file << " ";
+                file << element->second_angle_y / lyambda;
+                file << " ";
+                file << "POLY";
+                //delete element;
+            }
+
+    return true;
+}
 
 //int round_to_dec(int n) {
 //    if (n >= lyambda) {
@@ -93,7 +122,6 @@ WORD cursor_x_f = 0, cursor_y_f = 0, cursor_x_s = 0, cursor_y_s = 0;            
 
 LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
-    PAINTSTRUCT ps;
     HDC hdc;
     RECT r;
 
@@ -177,7 +205,8 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (GetOpenFileName(&ofn)) {
                 string name_file;
                 name_file = CW2A(ofn.lpstrFile);                                                    //LPWSTR to string for open file
-                file.open(name_file);
+
+                file.open(name_file, ios_base::in | ios_base::app);
 
                 if (!read_file(file)) {
                     MessageBox(hWnd, _T("Unable to open the file"), _T("ERROR"), MB_OK | MB_ICONERROR);
@@ -192,10 +221,14 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (result)
             {
             case IDYES:
-                //save_file(file);
+                if (save_file(file)) {
+                    MessageBox(hWnd, _T("The file was saved successfully"), _T("Save As"), MB_OK | MB_ICONEXCLAMATION);
+                }
                 break;
             case IDNO:
-                read_file(file);
+                user_rects_met.clear();
+                user_rects_poly.clear();
+                InvalidateRect(hWnd, 0, true);
                 break;
             case IDCANCEL:
                 break;
@@ -248,12 +281,12 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             brush = CreateSolidBrush(RGB(0, 40, 255));
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
-            for (int i = 0; i < vec_met.size(); i++) {
+            for ( unsigned int i = 0; i < vec_met.size(); i++) {
                 Rectangle(hdc, vec_met[i]->firts_angle_x, vec_met[i]->firts_angle_y, vec_met[i]->second_angle_x, vec_met[i]->second_angle_y);
             }
 
             //draw user metall
-            for (int i = 0; i < user_rects_met.size(); i++) {
+            for (unsigned int i = 0; i < user_rects_met.size(); i++) {
                 Rectangle(hdc, user_rects_met[i]->firts_angle_x, user_rects_met[i]->firts_angle_y, user_rects_met[i]->second_angle_x, user_rects_met[i]->second_angle_y);
             }
 
@@ -268,11 +301,11 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             brush = CreateSolidBrush(RGB(250, 80, 0));
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
-            for (int i = 0; i < vec_poly.size(); i++) {
+            for (unsigned int i = 0; i < vec_poly.size(); i++) {
                 Rectangle(hdc, vec_poly[i]->firts_angle_x, vec_poly[i]->firts_angle_y, vec_poly[i]->second_angle_x, vec_poly[i]->second_angle_y);
             }
             //draw user poly
-            for (int i = 0; i < user_rects_poly.size(); i++) {
+            for (unsigned int i = 0; i < user_rects_poly.size(); i++) {
                 Rectangle(hdc, user_rects_poly[i]->firts_angle_x, user_rects_poly[i]->firts_angle_y, user_rects_poly[i]->second_angle_x, user_rects_poly[i]->second_angle_y);
             }
 
