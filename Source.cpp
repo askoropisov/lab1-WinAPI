@@ -16,8 +16,6 @@ const int lyambda = 10;
 
 OPENFILENAME ofn;
 fstream file;
-//ofstream file;
-//ofstream file_save;
 
 class Poly {
 public:
@@ -53,22 +51,22 @@ bool read_file(fstream &file) {
         file >> temp_mas_koords[1];
         file >> temp_mas_koords[2];
         file >> temp_mas_koords[3];
-        file>>token;
+        file >> token;
         if (token == "METAL") {
             Metal* p_met = new  Metal;
             vec_met.push_back(p_met);
             p_met->firts_angle_x=temp_mas_koords[0]*lyambda;
             p_met->firts_angle_y=temp_mas_koords[1]*lyambda;
-            p_met->second_angle_x=temp_mas_koords[2]*lyambda;
-            p_met->second_angle_y=temp_mas_koords[3]*lyambda;
+            p_met->second_angle_x=(temp_mas_koords[2]+ temp_mas_koords[0]) * lyambda;
+            p_met->second_angle_y=(temp_mas_koords[3]+ temp_mas_koords[1]) * lyambda;
         }
         if (token == "POLY") {
             Poly* p_poly = new  Poly;
             vec_poly.push_back(p_poly);
             p_poly->firts_angle_x = temp_mas_koords[0] * lyambda;
             p_poly->firts_angle_y = temp_mas_koords[1] * lyambda;
-            p_poly->second_angle_x = temp_mas_koords[2] * lyambda;
-            p_poly->second_angle_y = temp_mas_koords[3] * lyambda;
+            p_poly->second_angle_x = (temp_mas_koords[2] + temp_mas_koords[0]) * lyambda;
+            p_poly->second_angle_y = (temp_mas_koords[3] + temp_mas_koords[1]) * lyambda;
         }
         }
     }
@@ -107,15 +105,6 @@ bool save_file(fstream &file) {
 
     return true;
 }
-
-//int round_to_dec(int n) {
-//    if (n >= lyambda) {
-//        double k = n%lyambda;
-//        if (k>=lyambda/2) return n+lyambda;
-//        else return n/lyambda;
-//        return 0;
-//    }
-//}
 
 bool draw_metall = true, draw_poly = true;
 WORD cursor_x_f = 0, cursor_y_f = 0, cursor_x_s = 0, cursor_y_s = 0;                        //short
