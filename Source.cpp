@@ -16,6 +16,7 @@ const int lyambda = 10;
 
 OPENFILENAME ofn;
 fstream file;
+RECT r;
 
 class Poly {
 public:
@@ -39,8 +40,19 @@ vector<Metal*> vec_met;
 vector<Poly*> user_rects_poly;
 vector<Metal*> user_rects_met;
 
+double koef_x=1;
+double koef_y=1;
+
+
 bool read_file(fstream& file) {
     int temp_mas_koords[4];
+    int met_srawn_x = 0;
+    int pol_srawn_x = 0;
+    int pol_srawn_y = 0;
+    int met_srawn_y = 0;
+    int max_size_x = 0;
+    int max_size_y = 0;
+
 
     string token;
     while (true) {
@@ -70,6 +82,27 @@ bool read_file(fstream& file) {
             }
         }
     }
+
+    
+    for (auto element : vec_met) {
+        if (element->second_angle_x > met_srawn_x) met_srawn_x = element->second_angle_x;
+    }
+    for (auto element : vec_met) {
+        if (element->second_angle_y > met_srawn_y) met_srawn_y = element->second_angle_y;
+    }
+
+    for (auto element : vec_poly) {
+        if (element->second_angle_x > pol_srawn_x) pol_srawn_x = element->second_angle_x;
+    }
+    for (auto element : vec_poly) {
+        if (element->second_angle_y > pol_srawn_y) pol_srawn_y = element->second_angle_y;
+    }
+
+    max_size_x = met_srawn_x > pol_srawn_x ? met_srawn_x : pol_srawn_x;
+    max_size_y = max(met_srawn_y, pol_srawn_y);
+
+    koef_x=r.right/max_size_x;
+    koef_y=r.bottom/max_size_y;
 
     return true;
 }
@@ -112,7 +145,7 @@ WORD cursor_x_f = 0, cursor_y_f = 0, cursor_x_s = 0, cursor_y_s = 0;            
 LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     HDC hdc;
-    RECT r;
+    
 
     GetClientRect(hWnd, &r);
 
