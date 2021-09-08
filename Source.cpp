@@ -14,6 +14,8 @@ const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 
 const int lyambda = 10;
 
+#define SHIFT                     100;
+
 OPENFILENAME ofn;
 fstream file;
 RECT r;
@@ -40,8 +42,8 @@ vector<Metal*> vec_met;
 vector<Poly*> user_rects_poly;
 vector<Metal*> user_rects_met;
 
-double koef_x=1;
-double koef_y=1;
+float koef_x=1;
+float koef_y=1;
 
 
 bool read_file(fstream& file) {
@@ -101,8 +103,11 @@ bool read_file(fstream& file) {
     max_size_x = met_srawn_x > pol_srawn_x ? met_srawn_x : pol_srawn_x;
     max_size_y = max(met_srawn_y, pol_srawn_y);
 
-    koef_x=r.right/max_size_x;
-    koef_y=r.bottom/max_size_y;
+    koef_x=(r.right-40)/static_cast<float>(max_size_x);
+    koef_y=(r.bottom-40)/ static_cast<float>(max_size_y);
+    if (koef_x>=50) koef_x=50;
+    if (koef_y>=50) koef_y=50;
+    
 
     return true;
 }
@@ -111,29 +116,27 @@ bool save_file(fstream& file) {
 
     for (auto element : user_rects_met) {
         file << endl << "RECT ";
-        file << element->firts_angle_x;
+        file << int(element->firts_angle_x/koef_x);
         file << " ";
-        file << element->firts_angle_y;
+        file << int(element->firts_angle_y/koef_y);
         file << " ";
-        file << element->second_angle_x-element->firts_angle_x;
+        file << int((element->second_angle_x-element->firts_angle_x) / koef_x);
         file << " ";
-        file << element->second_angle_y-element->firts_angle_y;
+        file << int((element->second_angle_y-element->firts_angle_y) / koef_y);
         file << " ";
         file << "METAL";
-        //delete element;
     }
     for (auto element : user_rects_poly) {
         file << endl << "RECT ";
-        file << element->firts_angle_x ;
+        file << int(element->firts_angle_x/koef_x);
         file << " ";
-        file << element->firts_angle_y ;
+        file << int(element->firts_angle_y/koef_y);
         file << " ";
-        file << element->second_angle_x - element->firts_angle_x;
+        file << int((element->second_angle_x - element->firts_angle_x) / koef_x);
         file << " ";
-        file << element->second_angle_y - element->firts_angle_y;
+        file << int((element->second_angle_y - element->firts_angle_y) / koef_y);
         file << " ";
         file << "POLY";
-        //delete element;
     }
 
     return true;
@@ -352,7 +355,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (unsigned int i = 0; i < vec_met.size(); i++) {
-                Rectangle(hdc, vec_met[i]->firts_angle_x, vec_met[i]->firts_angle_y, vec_met[i]->second_angle_x, vec_met[i]->second_angle_y);
+                Rectangle(hdc, vec_met[i]->firts_angle_x* koef_x, vec_met[i]->firts_angle_y* koef_y, vec_met[i]->second_angle_x* koef_x, vec_met[i]->second_angle_y* koef_y);
             }
 
             //draw user metall
@@ -372,7 +375,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (unsigned int i = 0; i < vec_poly.size(); i++) {
-                Rectangle(hdc, vec_poly[i]->firts_angle_x, vec_poly[i]->firts_angle_y, vec_poly[i]->second_angle_x, vec_poly[i]->second_angle_y);
+                Rectangle(hdc, vec_poly[i]->firts_angle_x* koef_x, vec_poly[i]->firts_angle_y* koef_y, vec_poly[i]->second_angle_x* koef_x, vec_poly[i]->second_angle_y* koef_y);
             }
             //draw user poly
             for (unsigned int i = 0; i < user_rects_poly.size(); i++) {
