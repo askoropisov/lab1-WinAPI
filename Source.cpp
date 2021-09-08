@@ -1,3 +1,4 @@
+
 #include <windows.h>
 #include <vector>
 #include <iostream>
@@ -14,8 +15,11 @@ const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 
 const int lyambda = 10;
 
+#define SHIFT                     0
+
 OPENFILENAME ofn;
 fstream file;
+RECT r;
 
 class Poly {
 public:
@@ -39,70 +43,103 @@ vector<Metal*> vec_met;
 vector<Poly*> user_rects_poly;
 vector<Metal*> user_rects_met;
 
-bool read_file(fstream &file) {
+float koef_x = 1;
+float koef_y = 1;
+int max_size_x = 0;
+int max_size_y = 0;
+
+
+bool read_file(fstream& file) {
     int temp_mas_koords[4];
+    int met_srawn_x = 0;
+    int pol_srawn_x = 0;
+    int pol_srawn_y = 0;
+    int met_srawn_y = 0;
+
+
 
     string token;
     while (true) {
         if (file.eof()) break;
         else {
-        file >> token;
-        file >> temp_mas_koords[0];
-        file >> temp_mas_koords[1];
-        file >> temp_mas_koords[2];
-        file >> temp_mas_koords[3];
-        file >> token;
-        if (token == "METAL") {
-            Metal* p_met = new  Metal;
-            vec_met.push_back(p_met);
-            p_met->firts_angle_x=temp_mas_koords[0]*lyambda;
-            p_met->firts_angle_y=temp_mas_koords[1]*lyambda;
-            p_met->second_angle_x=(temp_mas_koords[2]+ temp_mas_koords[0]) * lyambda;
-            p_met->second_angle_y=(temp_mas_koords[3]+ temp_mas_koords[1]) * lyambda;
-        }
-        if (token == "POLY") {
-            Poly* p_poly = new  Poly;
-            vec_poly.push_back(p_poly);
-            p_poly->firts_angle_x = temp_mas_koords[0] * lyambda;
-            p_poly->firts_angle_y = temp_mas_koords[1] * lyambda;
-            p_poly->second_angle_x = (temp_mas_koords[2] + temp_mas_koords[0]) * lyambda;
-            p_poly->second_angle_y = (temp_mas_koords[3] + temp_mas_koords[1]) * lyambda;
-        }
+            file >> token;
+            file >> temp_mas_koords[0];
+            file >> temp_mas_koords[1];
+            file >> temp_mas_koords[2];
+            file >> temp_mas_koords[3];
+            file >> token;
+            if (token == "METAL") {
+                Metal* p_met = new  Metal;
+                vec_met.push_back(p_met);
+                p_met->firts_angle_x = temp_mas_koords[0];
+                p_met->firts_angle_y = temp_mas_koords[1];
+                p_met->second_angle_x = (temp_mas_koords[0] + temp_mas_koords[2]);
+                p_met->second_angle_y = (temp_mas_koords[1] + temp_mas_koords[3]);
+            }
+            if (token == "POLY") {
+                Poly* p_poly = new  Poly;
+                vec_poly.push_back(p_poly);
+                p_poly->firts_angle_x = temp_mas_koords[0];
+                p_poly->firts_angle_y = temp_mas_koords[1];
+                p_poly->second_angle_x = (temp_mas_koords[0] + temp_mas_koords[2]);
+                p_poly->second_angle_y = (temp_mas_koords[1] + temp_mas_koords[3]);
+            }
         }
     }
+
+
+    for (auto element : vec_met) {
+        if (abs(element->second_angle_x) > met_srawn_x) met_srawn_x = abs(element->second_angle_x);
+    }
+    for (auto element : vec_met) {
+        if (abs(element->second_angle_y) > met_srawn_y) met_srawn_y = abs(element->second_angle_y);
+    }
+    for (auto element : vec_poly) {
+        if (abs(element->second_angle_x) > pol_srawn_x) pol_srawn_x = abs(element->second_angle_x);
+    }
+    for (auto element : vec_poly) {
+        if (abs(element->second_angle_y) > pol_srawn_y) pol_srawn_y = abs(element->second_angle_y);
+    }
+
+    max_size_x = met_srawn_x > pol_srawn_x ? met_srawn_x : pol_srawn_x;
+    max_size_y = max(met_srawn_y, pol_srawn_y);
+
+    koef_x = (r.right - 100) / static_cast<float>(max_size_x);
+    koef_y = (r.bottom - 100) / static_cast<float>(max_size_y);
+
+    file.close();
+
 
     return true;
 }
 
-bool save_file(fstream &file) {
+bool save_file(fstream& file) {
 
-            for (auto element : user_rects_met) {
-                file<<endl<<"RECT ";
-                file<<element->firts_angle_x / lyambda;
-                file<<" ";
-                file<<element->firts_angle_y / lyambda;
-                file << " ";
-                file<<element->second_angle_x / lyambda;
-                file << " ";
-                file<<element->second_angle_y / lyambda;
-                file << " "; 
-                file << "METAL";
-                //delete element;
-            }
-            for (auto element : user_rects_poly) {
-                file << endl << "RECT ";
-                file << element->firts_angle_x / lyambda;
-                file << " ";
-                file << element->firts_angle_y / lyambda;
-                file << " ";
-                file << element->second_angle_x / lyambda;
-                file << " ";
-                file << element->second_angle_y / lyambda;
-                file << " ";
-                file << "POLY";
-                //delete element;
-            }
-
+    for (auto element : user_rects_met) {
+        file << endl << "RECT ";
+        file << int(element->firts_angle_x / koef_x);
+        file << " ";
+        file << int(element->firts_angle_y / koef_y);
+        file << " ";
+        file << int((element->second_angle_x - element->firts_angle_x) / koef_x);
+        file << " ";
+        file << int((element->second_angle_y - element->firts_angle_y) / koef_y);
+        file << " ";
+        file << "METAL";
+    }
+    for (auto element : user_rects_poly) {
+        file << endl << "RECT ";
+        file << int(element->firts_angle_x / koef_x);
+        file << " ";
+        file << int(element->firts_angle_y / koef_y);
+        file << " ";
+        file << int((element->second_angle_x - element->firts_angle_x) / koef_x);
+        file << " ";
+        file << int((element->second_angle_y - element->firts_angle_y) / koef_y);
+        file << " ";
+        file << "POLY";
+    }
+    file.close();
     return true;
 }
 
@@ -112,7 +149,7 @@ WORD cursor_x_f = 0, cursor_y_f = 0, cursor_x_s = 0, cursor_y_s = 0;            
 LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
     HDC hdc;
-    RECT r;
+
 
     GetClientRect(hWnd, &r);
 
@@ -123,21 +160,19 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
         cursor_x_f = LOWORD(lParam);
         cursor_y_f = HIWORD(lParam);
-        WORD temt_x, temt_y;
-        while(!WM_LBUTTONUP) InvalidateRect(hWnd, 0, true);
-        
+
         break;
     case WM_LBUTTONUP:
         cursor_x_s = LOWORD(lParam);
         cursor_y_s = HIWORD(lParam);
 
-        if (cursor_x_f!=cursor_x_s && cursor_y_f!= cursor_y_s){
+        if (cursor_x_f != cursor_x_s && cursor_y_f != cursor_y_s) {
             Metal* p_met = new Metal;
             user_rects_met.push_back(p_met);
-            p_met->firts_angle_x=cursor_x_f;
-            p_met->firts_angle_y=cursor_y_f;
-            p_met->second_angle_x=cursor_x_s;
-            p_met->second_angle_y=cursor_y_s;
+            p_met->firts_angle_x = cursor_x_f;
+            p_met->firts_angle_y = cursor_y_f;
+            p_met->second_angle_x = cursor_x_s;
+            p_met->second_angle_y = cursor_y_s;
             InvalidateRect(hWnd, 0, true);
         }
 
@@ -157,7 +192,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             p_poly->firts_angle_y = cursor_y_f;
             p_poly->second_angle_x = cursor_x_s;
             p_poly->second_angle_y = cursor_y_s;
-            InvalidateRect(hWnd, 0, true);   
+            InvalidateRect(hWnd, 0, true);
         }
 
         break;
@@ -172,16 +207,16 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         AppendMenu(hMenu, MF_SEPARATOR, 0, _T(""));
         AppendMenu(hMenu, MF_STRING, 103, _T("&Exit"));
 
-       
+
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu1, _T("&Draw"));
         AppendMenu(hMenu1, MF_STRING, 201, _T("&Visible/invisible metall"));
-        AppendMenu(hMenu1, MF_STRING, 202, _T("&Visible/invisible metall"));
+        AppendMenu(hMenu1, MF_STRING, 202, _T("&Visible/invisible polysilicon"));
         AppendMenu(hMenu1, MF_SEPARATOR, 0, _T(""));
         AppendMenu(hMenu1, MF_STRING, 203, _T("&Clear"));
 
         SetMenu(hWnd, hMenubar);
         break;
-        }
+    }
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
@@ -202,21 +237,20 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 file.open(name_file, ios_base::in | ios_base::app);
 
-                
 
-                if (!read_file(file)) {
-                    user_rects_met.clear();
-                    user_rects_poly.clear();
+                user_rects_met.clear();
+                user_rects_poly.clear();
+                if (!read_file(file)) {               
                     InvalidateRect(hWnd, 0, true);
                     MessageBox(hWnd, _T("Unable to open the file"), _T("ERROR"), MB_OK | MB_ICONERROR);
                     return EXIT_FAILURE;
                 }
                 InvalidateRect(hWnd, 0, true);
                 file.close();
-                
+
             }
             break;
-            }
+        }
         case 102: {                                                                                 //Save as
             const int result = MessageBox(hWnd, _T("Are you sure you want to save the changes?"), _T("Save As"), MB_YESNOCANCEL | MB_ICONQUESTION | MB_APPLMODAL);
             switch (result)
@@ -252,7 +286,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         MessageBox(hWnd, _T("The file was saved successfully"), _T("Save As"), MB_OK | MB_ICONEXCLAMATION);
                     }
                 }
-                
+
                 break;
             }
             case IDNO:
@@ -264,7 +298,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             }
             break;
-            }
+        }
         case 103:
             PostMessage(hWnd, WM_QUIT, 0, 0);
             break;
@@ -305,11 +339,15 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         //draw pionts field
         const COLORREF grey = 0x00444444;
-        for (int i = 0; i < r.right; i+= lyambda) {
-            for (int j = 0; j < r.bottom; j+= lyambda) {
+        for (int i = 0; i < r.right; i += lyambda) {
+            for (int j = 0; j < r.bottom; j += lyambda) {
                 SetPixel(hdc, i, j, grey);
             }
         }
+
+        koef_x = (r.right - 100) / static_cast<float>(max_size_x);
+        koef_y = (r.bottom - 100) / static_cast<float>(max_size_y);
+       
 
         //draw metall in file
         if (draw_metall == true) {
@@ -318,8 +356,8 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             brush = CreateSolidBrush(RGB(0, 40, 255));
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
-            for ( unsigned int i = 0; i < vec_met.size(); i++) {
-                Rectangle(hdc, vec_met[i]->firts_angle_x, vec_met[i]->firts_angle_y, vec_met[i]->second_angle_x, vec_met[i]->second_angle_y);
+            for (unsigned int i = 0; i < vec_met.size(); i++) {
+                Rectangle(hdc, vec_met[i]->firts_angle_x * koef_x + SHIFT, vec_met[i]->firts_angle_y * koef_y + SHIFT, vec_met[i]->second_angle_x * koef_x + SHIFT, vec_met[i]->second_angle_y * koef_y + SHIFT);
             }
 
             //draw user metall
@@ -329,6 +367,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hdc, old_pen);
             SelectObject(hdc, old_brush);
+
         }
 
         //draw poly in file
@@ -339,7 +378,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (unsigned int i = 0; i < vec_poly.size(); i++) {
-                Rectangle(hdc, vec_poly[i]->firts_angle_x, vec_poly[i]->firts_angle_y, vec_poly[i]->second_angle_x, vec_poly[i]->second_angle_y);
+                Rectangle(hdc, vec_poly[i]->firts_angle_x * koef_x + SHIFT, vec_poly[i]->firts_angle_y * koef_y + SHIFT, vec_poly[i]->second_angle_x * koef_x + SHIFT, vec_poly[i]->second_angle_y * koef_y + SHIFT);
             }
             //draw user poly
             for (unsigned int i = 0; i < user_rects_poly.size(); i++) {
@@ -348,14 +387,15 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             SelectObject(hdc, old_pen);
             SelectObject(hdc, old_brush);
+
         }
-        
+
         EndPaint(hWnd, &ps);
         DeleteObject(pen);
         DeleteObject(brush);
-        
+
         break;
-        }
+    }
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
