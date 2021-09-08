@@ -397,7 +397,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SelectObject(hdc, old_brush);
             
         }
-
+        
         EndPaint(hWnd, &ps);
         DeleteObject(pen);
         DeleteObject(brush);
