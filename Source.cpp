@@ -55,18 +55,18 @@ bool read_file(fstream& file) {
             if (token == "METAL") {
                 Metal* p_met = new  Metal;
                 vec_met.push_back(p_met);
-                p_met->firts_angle_x = temp_mas_koords[0] * lyambda;
-                p_met->firts_angle_y = temp_mas_koords[1] * lyambda;
-                p_met->second_angle_x = (temp_mas_koords[0]  + temp_mas_koords[2]) * lyambda;
-                p_met->second_angle_y = (temp_mas_koords[1]  + temp_mas_koords[3]) * lyambda;
+                p_met->firts_angle_x = temp_mas_koords[0];
+                p_met->firts_angle_y = temp_mas_koords[1];
+                p_met->second_angle_x = (temp_mas_koords[0]  + temp_mas_koords[2]);
+                p_met->second_angle_y = (temp_mas_koords[1]  + temp_mas_koords[3]);
             }
             if (token == "POLY") {
                 Poly* p_poly = new  Poly;
                 vec_poly.push_back(p_poly);
-                p_poly->firts_angle_x = temp_mas_koords[0] * lyambda;
-                p_poly->firts_angle_y = temp_mas_koords[1] * lyambda;
-                p_poly->second_angle_x = (temp_mas_koords[0] + temp_mas_koords[2]) * lyambda;
-                p_poly->second_angle_y = (temp_mas_koords[1] + temp_mas_koords[3]) * lyambda;
+                p_poly->firts_angle_x = temp_mas_koords[0];
+                p_poly->firts_angle_y = temp_mas_koords[1];
+                p_poly->second_angle_x = (temp_mas_koords[0] + temp_mas_koords[2]);
+                p_poly->second_angle_y = (temp_mas_koords[1] + temp_mas_koords[3]);
             }
         }
     }
@@ -78,26 +78,26 @@ bool save_file(fstream& file) {
 
     for (auto element : user_rects_met) {
         file << endl << "RECT ";
-        file << element->firts_angle_x / lyambda;
+        file << element->firts_angle_x;
         file << " ";
-        file << element->firts_angle_y / lyambda;
+        file << element->firts_angle_y;
         file << " ";
-        file << element->second_angle_x / lyambda;
+        file << element->second_angle_x-element->firts_angle_x;
         file << " ";
-        file << element->second_angle_y / lyambda;
+        file << element->second_angle_y-element->firts_angle_y;
         file << " ";
         file << "METAL";
         //delete element;
     }
     for (auto element : user_rects_poly) {
         file << endl << "RECT ";
-        file << element->firts_angle_x / lyambda;
+        file << element->firts_angle_x ;
         file << " ";
-        file << element->firts_angle_y / lyambda;
+        file << element->firts_angle_y ;
         file << " ";
-        file << element->second_angle_x / lyambda;
+        file << element->second_angle_x - element->firts_angle_x;
         file << " ";
-        file << element->second_angle_y / lyambda;
+        file << element->second_angle_y - element->firts_angle_y;
         file << " ";
         file << "POLY";
         //delete element;
