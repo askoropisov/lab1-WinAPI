@@ -162,6 +162,32 @@ bool save_file(fstream& file) {
         file << "POLY";
     }
 
+    for (auto element : vec_met) {
+        file << endl << "RECT ";
+        file << element->firts_angle_x;
+        file << " ";
+        file << element->firts_angle_y;
+        file << " ";
+        file << element->second_angle_x - element->firts_angle_x;
+        file << " ";
+        file << element->second_angle_y - element->firts_angle_y;
+        file << " ";
+        file << "METAL";
+    }
+
+    for (auto element : vec_poly) {
+        file << endl << "RECT ";
+        file << element->firts_angle_x;
+        file << " ";
+        file << element->firts_angle_y;
+        file << " ";
+        file << element->second_angle_x - element->firts_angle_x;
+        file << " ";
+        file << element->second_angle_y - element->firts_angle_y;
+        file << " ";
+        file << "POLY";
+    }
+
     return true;
 }
 
@@ -222,10 +248,12 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HMENU hMenubar = CreateMenu();
         HMENU hMenu = CreateMenu();
         HMENU hMenu1 = CreateMenu();
+        
 
         AppendMenu(hMenubar, MF_POPUP, (UINT_PTR)hMenu, _T("&File"));
         AppendMenu(hMenu, MF_STRING, 101, _T("&Open file"));
         AppendMenu(hMenu, MF_STRING, 102, _T("&Save As"));
+        AppendMenu(hMenu, MF_STRING, 104, _T("&Edit lyambda"));
         AppendMenu(hMenu, MF_SEPARATOR, 0, _T(""));
         AppendMenu(hMenu, MF_STRING, 103, _T("&Exit"));
 
@@ -329,6 +357,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case 103:
             PostMessage(hWnd, WM_QUIT, 0, 0);
             break;
+        case 104: {
+            break;
+            }
         case 201:                            //Visible/invisible metall
             if (draw_metall == true) draw_metall = false;
             else if (draw_metall == false) draw_metall = true;
@@ -344,6 +375,7 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             user_rects_poly.clear();
             vec_met.clear();
             vec_poly.clear();
+            file_open=false;
             InvalidateRect(hWnd, 0, true);
             break;
         default:
@@ -472,7 +504,7 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
         return 1;
     }
 
-    HWND hWnd = CreateWindow(windowClass, windowTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1000, 800, NULL, NULL, hInstance, NULL);
+    HWND hWnd = CreateWindow(windowClass, windowTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 900, 600, NULL, NULL, hInstance, NULL);
 
 
     if (!hWnd) {
