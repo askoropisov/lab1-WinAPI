@@ -13,6 +13,7 @@ using namespace std;
 const wchar_t windowClass[] = _T("win32app");
 const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 
+
 const int lyambda = 10;
 
 #define SHIFT                     0
@@ -21,6 +22,9 @@ const int lyambda = 10;
 OPENFILENAME ofn;
 fstream file;
 RECT r;
+double standart_x ;
+double standart_y ;
+
 
 class Poly {
 public:
@@ -412,8 +416,9 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
              koef_y = (r.bottom-N) / static_cast<float>(max_size_y - min_size_y);
          }
          else {
-             koef_x = 1;
-             koef_y = 1;
+         
+             koef_x = r.right/standart_x;
+             koef_y = r.bottom/standart_y;
          }
 
          //draw metall in file
@@ -432,10 +437,10 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             //draw user metall
             for (unsigned int i = 0; i < user_rects_met.size(); i++) {
-                Rectangle(hdc, user_rects_met[i]->firts_angle_x,
-                    user_rects_met[i]->firts_angle_y,
-                    user_rects_met[i]->second_angle_x,
-                    user_rects_met[i]->second_angle_y);
+                Rectangle(hdc, user_rects_met[i]->firts_angle_x* koef_x,
+                    user_rects_met[i]->firts_angle_y* koef_y,
+                    user_rects_met[i]->second_angle_x* koef_x,
+                    user_rects_met[i]->second_angle_y* koef_y);
             }
 
             SelectObject(hdc, old_pen);
@@ -458,10 +463,10 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
             //draw user poly
             for (unsigned int i = 0; i < user_rects_poly.size(); i++) {
-                Rectangle(hdc, user_rects_poly[i]->firts_angle_x,
-                    user_rects_poly[i]->firts_angle_y,
-                    user_rects_poly[i]->second_angle_x,
-                    user_rects_poly[i]->second_angle_y);
+                Rectangle(hdc, user_rects_poly[i]->firts_angle_x*koef_x,
+                    user_rects_poly[i]->firts_angle_y*koef_y,
+                    user_rects_poly[i]->second_angle_x*koef_x,
+                    user_rects_poly[i]->second_angle_y*koef_y);
             }
 
             SelectObject(hdc, old_pen);
@@ -505,7 +510,8 @@ int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdL
     }
 
     HWND hWnd = CreateWindow(windowClass, windowTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 900, 600, NULL, NULL, hInstance, NULL);
-
+    standart_x = r.right;
+    standart_y = r.bottom;
 
     if (!hWnd) {
         MessageBox(NULL, _T("CanÒt create window!"), _T("Win32 API Test"), NULL);
