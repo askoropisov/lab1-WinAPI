@@ -16,6 +16,7 @@ const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 const int lyambda = 10;
 
 #define SHIFT                     0
+#define N                         60
 
 OPENFILENAME ofn;
 fstream file;
@@ -45,11 +46,14 @@ vector<Metal*> user_rects_met;
 
 float koef_x = 1;
 float koef_y = 1;
-int max_size_x = 0;
-int max_size_y = 0;
+int max_size_x = 1;
+int max_size_y = 1;
+int min_size_x = 0;
+int min_size_y = 0;
 
-
+bool file_open=false;
 bool read_file(fstream& file) {
+    file_open=true;
     int temp_mas_koords[4];
     int met_srawn_x = 0;
     int pol_srawn_x = 0;
@@ -88,7 +92,7 @@ bool read_file(fstream& file) {
     }
 
 
-    for (auto element : vec_met) {
+    for (auto element : vec_met) {          
         if (abs(element->second_angle_x) > met_srawn_x) met_srawn_x = abs(element->second_angle_x);
     }
     for (auto element : vec_met) {
@@ -101,13 +105,31 @@ bool read_file(fstream& file) {
         if (abs(element->second_angle_y) > pol_srawn_y) pol_srawn_y = abs(element->second_angle_y);
     }
 
-    max_size_x = met_srawn_x > pol_srawn_x ? met_srawn_x : pol_srawn_x;
+    max_size_x = max(met_srawn_x, pol_srawn_x);
     max_size_y = max(met_srawn_y, pol_srawn_y);
 
-    koef_x = (r.right - 100) / static_cast<float>(max_size_x);
-    koef_y = (r.bottom - 100) / static_cast<float>(max_size_y);
+    met_srawn_x=1000000;
+    met_srawn_y=1000000;
 
-    file.close();
+
+    for (auto element : vec_met) {
+        if (abs(element->firts_angle_x) < met_srawn_x) met_srawn_x = abs(element->firts_angle_x);
+    }
+    for (auto element : vec_met) {
+        if (abs(element->firts_angle_y) < met_srawn_y) met_srawn_y = abs(element->firts_angle_y);
+    }
+    for (auto element : vec_poly) {
+        if (abs(element->firts_angle_x) < pol_srawn_x) pol_srawn_x = abs(element->firts_angle_x);
+    }
+    for (auto element : vec_poly) {
+        if (abs(element->firts_angle_y) < pol_srawn_y) pol_srawn_y = abs(element->firts_angle_y);
+    }
+
+    min_size_x = min(met_srawn_x, pol_srawn_x);
+    min_size_y = min(met_srawn_y, pol_srawn_y);
+
+    koef_x = (r.right -N) / static_cast<float>(max_size_x - min_size_x);
+    koef_y = (r.bottom -N) / static_cast<float>(max_size_y - min_size_y);
 
 
     return true;
@@ -139,7 +161,7 @@ bool save_file(fstream& file) {
         file << " ";
         file << "POLY";
     }
-    file.close();
+
     return true;
 }
 
@@ -240,7 +262,11 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                 user_rects_met.clear();
                 user_rects_poly.clear();
-                if (!read_file(file)) {               
+                vec_met.clear();
+                vec_poly.clear();
+                file_open=false;
+                if (!read_file(file)) {
+                    
                     InvalidateRect(hWnd, 0, true);
                     MessageBox(hWnd, _T("Unable to open the file"), _T("ERROR"), MB_OK | MB_ICONERROR);
                     return EXIT_FAILURE;
@@ -280,10 +306,11 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     string name_file;
                     name_file = CW2A(ofn.lpstrFile);
-                    file.close();
+                    
                     file.open(name_file, ios_base::in | ios_base::app);
                     if (save_file(file)) {
                         MessageBox(hWnd, _T("The file was saved successfully"), _T("Save As"), MB_OK | MB_ICONEXCLAMATION);
+                        file.close();
                     }
                 }
 
@@ -345,9 +372,17 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        koef_x = (r.right - 100) / static_cast<float>(max_size_x);
-        koef_y = (r.bottom - 100) / static_cast<float>(max_size_y);
-       
+        koef_x = (r.right - N) / static_cast<float>(max_size_x - min_size_x);
+        koef_y = (r.bottom - N) / static_cast<float>(max_size_y - min_size_y);
+
+       /* if(file_open==true){
+            koef_x = (r.right-N) / static_cast<float>(max_size_x - min_size_x);
+            koef_y = (r.bottom-N) / static_cast<float>(max_size_y - min_size_y);
+        }
+        else {
+            koef_x = 1;
+            koef_y = 1;
+        }*/
 
         //draw metall in file
         if (draw_metall == true) {
@@ -357,12 +392,18 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (unsigned int i = 0; i < vec_met.size(); i++) {
-                Rectangle(hdc, vec_met[i]->firts_angle_x * koef_x + SHIFT, vec_met[i]->firts_angle_y * koef_y + SHIFT, vec_met[i]->second_angle_x * koef_x + SHIFT, vec_met[i]->second_angle_y * koef_y + SHIFT);
+                Rectangle(hdc, vec_met[i]->firts_angle_x * koef_x + SHIFT,
+                               vec_met[i]->firts_angle_y * koef_y + SHIFT,
+                               vec_met[i]->second_angle_x * koef_x + SHIFT,
+                               vec_met[i]->second_angle_y * koef_y + SHIFT);
             }
 
             //draw user metall
             for (unsigned int i = 0; i < user_rects_met.size(); i++) {
-                Rectangle(hdc, user_rects_met[i]->firts_angle_x, user_rects_met[i]->firts_angle_y, user_rects_met[i]->second_angle_x, user_rects_met[i]->second_angle_y);
+                Rectangle(hdc, user_rects_met[i]->firts_angle_x,
+                    user_rects_met[i]->firts_angle_y,
+                    user_rects_met[i]->second_angle_x,
+                    user_rects_met[i]->second_angle_y);
             }
 
             SelectObject(hdc, old_pen);
@@ -378,11 +419,17 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             old_brush = (HBRUSH)SelectObject(hdc, brush);
 
             for (unsigned int i = 0; i < vec_poly.size(); i++) {
-                Rectangle(hdc, vec_poly[i]->firts_angle_x * koef_x + SHIFT, vec_poly[i]->firts_angle_y * koef_y + SHIFT, vec_poly[i]->second_angle_x * koef_x + SHIFT, vec_poly[i]->second_angle_y * koef_y + SHIFT);
+                Rectangle(hdc, vec_poly[i]->firts_angle_x * koef_x + SHIFT,
+                               vec_poly[i]->firts_angle_y * koef_y + SHIFT,
+                               vec_poly[i]->second_angle_x * koef_x + SHIFT,
+                               vec_poly[i]->second_angle_y * koef_y + SHIFT);
             }
             //draw user poly
             for (unsigned int i = 0; i < user_rects_poly.size(); i++) {
-                Rectangle(hdc, user_rects_poly[i]->firts_angle_x, user_rects_poly[i]->firts_angle_y, user_rects_poly[i]->second_angle_x, user_rects_poly[i]->second_angle_y);
+                Rectangle(hdc, user_rects_poly[i]->firts_angle_x,
+                               user_rects_poly[i]->firts_angle_y,
+                               user_rects_poly[i]->second_angle_x,
+                               user_rects_poly[i]->second_angle_y);
             }
 
             SelectObject(hdc, old_pen);
