@@ -17,7 +17,7 @@ const wchar_t windowTitle[] = _T("Win32API - Layer Simulator");
 const int lyambda = 10;
 
 #define SHIFT                     0
-#define N                         60
+#define N                         50
 
 OPENFILENAME ofn;
 fstream file;
@@ -412,8 +412,8 @@ LRESULT __stdcall WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         koef_y = (r.bottom - N) / static_cast<float>(max_size_y - min_size_y);*/
 
          if(file_open==true){
-             koef_x = (r.right-N) / static_cast<float>(max_size_x - min_size_x);
-             koef_y = (r.bottom-N) / static_cast<float>(max_size_y - min_size_y);
+             koef_x = (r.right-N) / static_cast<float>(max_size_x + min_size_x);
+             koef_y = (r.bottom-N) / static_cast<float>(max_size_y + min_size_y);
          }
          else {
          
